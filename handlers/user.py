@@ -2,6 +2,8 @@ from aiogram.types import Message, CallbackQuery
 from lexicon.lexicon import LEXICON
 from keyboards.type_kb import create_type_keyboard
 from keyboards.pagination_kb import create_task_keyboard, create_back_keyboard
+from keyboards.train_kb import create_train_keyboard
+from keyboards.about_kb import create_about_keyboard
 
 users = {}
 # Формат словаря users:
@@ -15,14 +17,14 @@ users = {}
 tasks_data = {}
 
 
-async def start_handler(message: Message):
-    """
-    Хендлер нажатия на команду /start
-    """
-    await message.answer(
-        LEXICON['choose_type'],
-        reply_markup=create_type_keyboard()
-    )
+# async def start_handler(message: Message):
+#     """
+#     Хендлер нажатия на команду /start УДАЛЯЕТСЯ ПРИ ДОПОЛНЕНИИ
+#     """
+#     await message.answer(
+#         LEXICON['choose_type'],
+#         reply_markup=create_type_keyboard()
+#     )
 
 
 async def choose_type_handler(callback: CallbackQuery):
@@ -125,3 +127,26 @@ async def back_types_handler(callback: CallbackQuery):
         reply_markup=create_type_keyboard()
     )
     await callback.answer()
+
+async def start_menu_handler(message: Message):
+    await message.answer(LEXICON['start_text'])
+
+
+async def train_handler(message: Message):
+    await message.answer(
+        LEXICON['train_text'],
+        reply_markup=create_train_keyboard()
+    )
+
+
+async def about_handler(message: Message):
+    await message.answer(
+        LEXICON['about_text'],
+        reply_markup=create_about_keyboard()
+    )
+
+async def ege_button_handler(message: Message):
+    await message.answer(
+        LEXICON['choose_type'],
+        reply_markup=create_type_keyboard()
+    )
