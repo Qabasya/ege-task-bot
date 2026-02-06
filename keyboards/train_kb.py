@@ -12,5 +12,6 @@ def create_train_keyboard():
                 KeyboardButton(text='📖 Статьи по заданиям')
             ],
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
+        one_time_keyboard = True
     )

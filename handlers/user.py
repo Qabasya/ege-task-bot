@@ -4,6 +4,7 @@ from keyboards.type_kb import create_type_keyboard
 from keyboards.pagination_kb import create_task_keyboard, create_back_keyboard
 from keyboards.train_kb import create_train_keyboard
 from keyboards.about_kb import create_about_keyboard
+from aiogram.types import ReplyKeyboardRemove
 
 users = {}
 # Формат словаря users:
@@ -142,11 +143,13 @@ async def train_handler(message: Message):
 async def about_handler(message: Message):
     await message.answer(
         LEXICON['about_text'],
-        reply_markup=create_about_keyboard()
+        reply_markup=create_about_keyboard(),
     )
 
 async def ege_button_handler(message: Message):
     await message.answer(
         LEXICON['choose_type'],
-        reply_markup=create_type_keyboard()
+        reply_markup=create_type_keyboard(),
     )
+    # # убрать прошлую ReplyKeyboard
+    await message.answer("...", reply_markup=ReplyKeyboardRemove())
