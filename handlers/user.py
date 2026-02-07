@@ -1,10 +1,16 @@
+from aiogram import Router, F
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
-from lexicon.lexicon import LEXICON
-from keyboards.type_kb import create_type_keyboard
+from aiogram.types import ReplyKeyboardRemove
+
+from keyboards.about_kb import create_about_keyboard
 from keyboards.pagination_kb import create_task_keyboard, create_back_keyboard
 from keyboards.train_kb import create_train_keyboard
-from keyboards.about_kb import create_about_keyboard
-from aiogram.types import ReplyKeyboardRemove
+from keyboards.type_kb import create_type_keyboard
+from lexicon.lexicon import LEXICON
+
+# Создаём роутер
+router = Router(name='user_router')
 
 users = {}
 # Формат словаря users:
@@ -18,16 +24,20 @@ users = {}
 tasks_data = {}
 
 
-# async def start_handler(message: Message):
-#     """
-#     Хендлер нажатия на команду /start УДАЛЯЕТСЯ ПРИ ДОПОЛНЕНИИ
-#     """
-#     await message.answer(
-#         LEXICON['choose_type'],
-#         reply_markup=create_type_keyboard()
-#     )
+async def show_task(message, user_id):
+    """
+    Функция отображения задания
+    """
+    user = users[user_id]
+    tasks = tasks_data[user['type']]
+    task = tasks[user['index']]
+
+    text = LEXICON['task'].format(id=task['id'], text=task['text'])
+
+    await message.edit_text(text, reply_markup=create_task_keyboard())
 
 
+@router.callback_query(F.data.startswith('type_'))
 async def choose_type_handler(callback: CallbackQuery):
     """
     Хендлер выбора типа задания.
@@ -46,19 +56,7 @@ async def choose_type_handler(callback: CallbackQuery):
     await callback.answer()
 
 
-async def show_task(message, user_id):
-    """
-    Функция отображения задания
-    """
-    user = users[user_id]
-    tasks = tasks_data[user['type']]
-    task = tasks[user['index']]
-
-    text = LEXICON['task'].format(id=task['id'], text=task['text'])
-
-    await message.edit_text(text, reply_markup=create_task_keyboard())
-
-
+@router.callback_query(F.data.in_(['left', 'right']))
 async def paginate_handler(callback: CallbackQuery):
     """
     Хендлер нажатия на кнопки пагинации (<<< и >>>)
@@ -76,6 +74,7 @@ async def paginate_handler(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.callback_query(F.data == 'answer')
 async def ask_answer_handler(callback: CallbackQuery):
     """
     Хендлер кнопки "Дать ответ"
@@ -85,6 +84,57 @@ async def ask_answer_handler(callback: CallbackQuery):
     await callback.answer()
 
 
+@router.callback_query(F.data == 'back_task')
+async def back_task_handler(callback: CallbackQuery):
+    """
+    Хендлер кнопки возврата к заданиям
+    """
+    await show_task(callback.message, callback.from_user.id)
+    await callback.answer()
+
+
+@router.callback_query(F.data == 'back_types')
+async def back_types_handler(callback: CallbackQuery):
+    """
+    Хендлер кнопки возврата к типам заданий
+    """
+    await callback.message.edit_text(
+        LEXICON['choose_type'],
+        reply_markup=create_type_keyboard()
+    )
+    await callback.answer()
+
+
+@router.message(Command("start"))
+async def start_menu_handler(message: Message):
+    await message.answer(LEXICON['start_text'])
+
+
+@router.message(Command("train"))
+async def train_handler(message: Message):
+    await message.answer(
+        LEXICON['train_text'],
+        reply_markup=create_train_keyboard()
+    )
+
+
+@router.message(Command("about"))
+async def about_handler(message: Message):
+    await message.answer(
+        LEXICON['about_text'],
+        reply_markup=create_about_keyboard(),
+    )
+
+
+@router.message(F.text == 'ЕГЭ информатика')
+async def ege_button_handler(message: Message):
+    await message.answer(
+        LEXICON['choose_type'],
+        reply_markup=create_type_keyboard()
+    )
+
+
+@router.message()
 async def check_answer_handler(message: Message):
     """
     Функция проверки ответа
@@ -109,47 +159,3 @@ async def check_answer_handler(message: Message):
         )
 
     user['waiting_answer'] = False
-
-
-async def back_task_handler(callback: CallbackQuery):
-    """
-    Хендлер кнопки возврата к заданиям
-    """
-    await show_task(callback.message, callback.from_user.id)
-    await callback.answer()
-
-
-async def back_types_handler(callback: CallbackQuery):
-    """
-    Хендлер кнопки возврата к типам заданий
-    """
-    await callback.message.edit_text(
-        LEXICON['choose_type'],
-        reply_markup=create_type_keyboard()
-    )
-    await callback.answer()
-
-async def start_menu_handler(message: Message):
-    await message.answer(LEXICON['start_text'])
-
-
-async def train_handler(message: Message):
-    await message.answer(
-        LEXICON['train_text'],
-        reply_markup=create_train_keyboard()
-    )
-
-
-async def about_handler(message: Message):
-    await message.answer(
-        LEXICON['about_text'],
-        reply_markup=create_about_keyboard(),
-    )
-
-async def ege_button_handler(message: Message):
-    await message.answer(
-        LEXICON['choose_type'],
-        reply_markup=create_type_keyboard(),
-    )
-    # # убрать прошлую ReplyKeyboard
-    await message.answer("...", reply_markup=ReplyKeyboardRemove())
