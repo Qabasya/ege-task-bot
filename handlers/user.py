@@ -1,7 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
-from aiogram.types import ReplyKeyboardRemove
 
 from keyboards.about_kb import create_about_keyboard
 from keyboards.pagination_kb import create_task_keyboard, create_back_keyboard
@@ -13,16 +12,7 @@ from lexicon.lexicon import LEXICON
 router = Router(name='user_router')
 
 users = {}
-# Формат словаря users:
-# users = {
-#     user_id: { # Словарь под каждого пользователя
-#         'type': '7', # тип задания: 7 8 или 11
-#         'index': 0, # номер задания по порядку
-#         'waiting_answer': False # Нажата ли кнопка "дать ответ"
-#     }
-# }
 tasks_data = {}
-
 
 async def show_task(message, user_id):
     """
@@ -36,6 +26,7 @@ async def show_task(message, user_id):
 
     await message.edit_text(text, reply_markup=create_task_keyboard())
 
+# ========= CALLBACK =========
 
 @router.callback_query(F.data.startswith('type_'))
 async def choose_type_handler(callback: CallbackQuery):
@@ -105,6 +96,8 @@ async def back_types_handler(callback: CallbackQuery):
     await callback.answer()
 
 
+# ========= MESSAGE =========
+
 @router.message(Command("start"))
 async def start_menu_handler(message: Message):
     await message.answer(LEXICON['start_text'])
@@ -134,6 +127,8 @@ async def ege_button_handler(message: Message):
     )
 
 
+# ========= ПРОВЕРКА ОТВЕТА =========
+
 @router.message()
 async def check_answer_handler(message: Message):
     """
@@ -144,10 +139,22 @@ async def check_answer_handler(message: Message):
     if not user or not user['waiting_answer']:
         return
 
+    user_text = message.text.strip()
+
+    # проверяем, что введено число
+    if not user_text.isdigit():
+        await message.answer('Введите числовой ответ.')
+        return
+
+    user_answer = int(user_text)
+
     tasks = tasks_data[user['type']]
     task = tasks[user['index']]
+    print(task['answer'])
+    print(type(task['answer']))
+    print(type(user_answer))
 
-    if message.text.strip() == task['answer']:
+    if user_answer == task['answer']:
         await message.answer(
             LEXICON['correct'],
             reply_markup=create_back_keyboard()

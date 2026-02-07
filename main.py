@@ -9,17 +9,15 @@ from handlers.user import router as user_router
 from handlers.other import router as other_router
 from keyboards.menu import set_main_menu
 
-
 from handlers import user
-from services.task_loader import load_tasks
+from services.dbloader import load_tasks_from_db
+
 
 async def main():
     # Загружаем задания
-    user.tasks_data['7'] = load_tasks('tasks/task_7.txt')
-    user.tasks_data['8'] = load_tasks('tasks/task_8.txt')
-    user.tasks_data['11'] = load_tasks('tasks/task_11.txt')
-
-    tasks_data = {}
+    user.tasks_data['7'] = load_tasks_from_db('db/ege_bot_db.db', 'task_7')
+    user.tasks_data['8'] = load_tasks_from_db('db/ege_bot_db.db', 'task_8')
+    user.tasks_data['11'] = load_tasks_from_db('db/ege_bot_db.db', 'task_11')
 
     config = load_config()
 
@@ -42,7 +40,6 @@ async def main():
 
     # ===== ЗАПУСК POLLING =====
     await dp.start_polling(bot)
-
 
 
 if __name__ == '__main__':
